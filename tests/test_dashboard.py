@@ -66,3 +66,26 @@ def test_glass_morphism_css_present(client):
     assert 'backdrop-filter' in html
     assert 'blur(12px)' in html
     assert 'rgba(20, 20, 25, 0.7)' in html
+
+def test_api_spend_hourly_aggregation(client):
+    """Spend endpoint supports hourly aggregation for charts"""
+    mock_entries = [
+        {"startTime": "2026-02-26T10:00:00", "model": "claude-sonnet-4-5",
+         "spend": 0.003, "total_tokens": 1500, "prompt_tokens": 1000, "completion_tokens": 500},
+        {"startTime": "2026-02-26T10:30:00", "model": "claude-sonnet-4-5",
+         "spend": 0.005, "total_tokens": 2000, "prompt_tokens": 1200, "completion_tokens": 800},
+        {"startTime": "2026-02-26T11:00:00", "model": "claude-haiku-4-5",
+         "spend": 0.001, "total_tokens": 500, "prompt_tokens": 300, "completion_tokens": 200},
+    ]
+    mock_response = MagicMock()
+    mock_response.status_code = 200
+    mock_response.json.return_value = mock_entries
+    with patch('token_dashboard_nexus.http_requests.get', return_value=mock_response):
+        rv = client.get('/api/spend?aggregate=hourly')
+        data = json.loads(rv.data)
+        assert 'hourly' in data
+        assert len(data['hourly']) >= 1
+        # Hour 10 should have 2 entries aggregated
+        hour_10 = [h for h in data['hourly'] if '10' in h['hour']]
+        assert len(hour_10) == 1
+        assert hour_10[0]['requests'] == 2

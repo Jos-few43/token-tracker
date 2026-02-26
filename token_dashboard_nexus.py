@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """NEXUS // TOKEN OS - Cyberpunk Terminal Dashboard"""
 
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request as flask_request
 import json
+from collections import defaultdict
 from datetime import datetime, timedelta
 from pathlib import Path
 import time
@@ -280,7 +281,22 @@ def api_spend():
                     0
                 ),
             })
-    return jsonify({'entries': entries, 'source': source})
+    aggregate = flask_request.args.get('aggregate')
+    result = {'entries': entries, 'source': source}
+
+    if aggregate == 'hourly':
+        hourly = defaultdict(lambda: {'cost': 0, 'tokens': 0, 'requests': 0})
+        for e in entries:
+            hour = e['timestamp'][:13] if e['timestamp'] else 'unknown'
+            hourly[hour]['cost'] += e.get('cost', 0)
+            hourly[hour]['tokens'] += e.get('total_tokens', 0)
+            hourly[hour]['requests'] += 1
+        result['hourly'] = [
+            {'hour': k, 'cost': v['cost'], 'tokens': v['tokens'], 'requests': v['requests']}
+            for k, v in sorted(hourly.items())
+        ]
+
+    return jsonify(result)
 
 @app.route('/')
 def index():
@@ -813,6 +829,7 @@ def index():
             animation: spin 1s linear infinite;
         }}
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
 </head>
 <body>
     <div class="container">
@@ -884,6 +901,16 @@ def index():
             </div>
             <div class="tile-body" id="stats-container">
                 <!-- Statistics will be rendered here -->
+            </div>
+        </div>
+
+        <!-- Spend Timeline Chart Tile -->
+        <div class="tile glass">
+            <div class="tile-header">
+                <div class="tile-title"><span class="tile-icon">▓</span> SPEND TIMELINE</div>
+            </div>
+            <div class="tile-body">
+                <canvas id="spendChart" height="200"></canvas>
             </div>
         </div>
 
@@ -1163,6 +1190,36 @@ def index():
         // Auto-refresh every 10 seconds
         fetchData();
         setInterval(fetchData, 10000);
+
+        // Spend Timeline Chart
+        fetch('/api/spend?aggregate=hourly')
+            .then(r => r.json())
+            .then(data => {{
+                if (!data.hourly || data.hourly.length === 0) return;
+                const ctx = document.getElementById('spendChart').getContext('2d');
+                new Chart(ctx, {{
+                    type: 'line',
+                    data: {{
+                        labels: data.hourly.map(h => h.hour.slice(11) + ':00'),
+                        datasets: [{{
+                            label: 'Cost ($)',
+                            data: data.hourly.map(h => h.cost),
+                            borderColor: '#00d9ff',
+                            backgroundColor: 'rgba(0, 217, 255, 0.1)',
+                            fill: true,
+                            tension: 0.4,
+                        }}]
+                    }},
+                    options: {{
+                        responsive: true,
+                        plugins: {{ legend: {{ labels: {{ color: '#e0e7ff', font: {{ family: 'JetBrains Mono' }} }} }} }},
+                        scales: {{
+                            x: {{ ticks: {{ color: '#64748b' }}, grid: {{ color: '#1a2332' }} }},
+                            y: {{ ticks: {{ color: '#64748b', callback: v => '$' + v.toFixed(4) }}, grid: {{ color: '#1a2332' }} }}
+                        }}
+                    }}
+                }});
+            }});
     </script>
 </body>
 </html>"""
