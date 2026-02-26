@@ -86,6 +86,25 @@ API_PROVIDERS = {
     }
 }
 
+# Pricing per million tokens (input, output) in USD
+MODEL_PRICING = {
+    'claude-opus-4-6':           (15.0, 75.0),
+    'claude-sonnet-4-5':         (3.0, 15.0),
+    'claude-haiku-4-5':          (0.80, 4.0),
+    'gemini-3-flash':            (0.10, 0.40),
+    'gemini-3-pro':              (1.25, 10.0),
+    'gpt-oss-120b':              (0.0, 0.0),
+    'llama-3.3-70b-versatile':   (0.59, 0.79),
+    'deepseek-r1':               (0.55, 2.19),
+    'qwen-2.5-coder-32b':        (0.20, 0.20),
+}
+DEFAULT_PRICING = (1.0, 3.0)
+
+def calculate_cost(model, prompt_tokens=0, completion_tokens=0):
+    """Calculate cost in USD for a given model and token counts"""
+    input_rate, output_rate = MODEL_PRICING.get(model, DEFAULT_PRICING)
+    return (prompt_tokens * input_rate + completion_tokens * output_rate) / 1_000_000
+
 def read_json(filepath):
     try:
         if filepath.exists():
@@ -239,6 +258,11 @@ def api_spend():
                     'total_tokens': entry.get('total_tokens', 0),
                     'prompt_tokens': entry.get('prompt_tokens', 0),
                     'completion_tokens': entry.get('completion_tokens', 0),
+                    'cost': calculate_cost(
+                        entry.get('model', 'unknown'),
+                        entry.get('prompt_tokens', 0),
+                        entry.get('completion_tokens', 0)
+                    ),
                 })
     except (http_requests.ConnectionError, http_requests.Timeout):
         data = read_json(USAGE_LOG) or {'entries': []}
@@ -250,6 +274,11 @@ def api_spend():
                 'total_tokens': entry.get('tokens', 0),
                 'prompt_tokens': 0,
                 'completion_tokens': 0,
+                'cost': calculate_cost(
+                    entry.get('model', 'unknown'),
+                    0,
+                    0
+                ),
             })
     return jsonify({'entries': entries, 'source': source})
 

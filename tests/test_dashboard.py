@@ -44,3 +44,17 @@ def test_fetch_litellm_spend_fallback_on_error(client):
         assert rv.status_code == 200
         assert 'entries' in data
         assert data['source'] == 'local'
+
+def test_cost_calculation():
+    from token_dashboard_nexus import calculate_cost
+    # Claude Sonnet: $3/M input, $15/M output
+    cost = calculate_cost('claude-sonnet-4-5', prompt_tokens=1000, completion_tokens=500)
+    expected = (1000 * 3.0 + 500 * 15.0) / 1_000_000  # = 0.0105
+    assert abs(cost - expected) < 0.0001
+
+def test_cost_unknown_model():
+    from token_dashboard_nexus import calculate_cost
+    cost = calculate_cost('unknown-model', prompt_tokens=1000, completion_tokens=500)
+    assert cost > 0  # uses default rate (1.0, 3.0)
+    expected = (1000 * 1.0 + 500 * 3.0) / 1_000_000
+    assert abs(cost - expected) < 0.0001
