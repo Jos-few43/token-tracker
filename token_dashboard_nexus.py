@@ -6,9 +6,11 @@ import json
 from datetime import datetime, timedelta
 from pathlib import Path
 import time
+import requests as http_requests
 
 app = Flask(__name__)
 
+LITELLM_URL = 'http://localhost:4000'
 OPENCODE_ACCOUNTS = Path.home() / '.config/opencode/antigravity-accounts.json'
 OPENCLAW_AUTH = Path.home() / '.openclaw/agents/main/agent/auth-profiles.json'
 LITELLM_ENV = Path('/tmp/litellm-full-env')
@@ -219,6 +221,37 @@ def get_usage_stats():
             continue
 
     return stats
+
+@app.route('/api/spend')
+def api_spend():
+    entries = []
+    source = 'local'
+    try:
+        resp = http_requests.get(f'{LITELLM_URL}/spend/logs', timeout=5)
+        if resp.status_code == 200:
+            source = 'litellm'
+            raw = resp.json()
+            for entry in (raw if isinstance(raw, list) else raw.get('data', [])):
+                entries.append({
+                    'timestamp': entry.get('startTime', ''),
+                    'model': entry.get('model', 'unknown'),
+                    'spend': entry.get('spend', 0),
+                    'total_tokens': entry.get('total_tokens', 0),
+                    'prompt_tokens': entry.get('prompt_tokens', 0),
+                    'completion_tokens': entry.get('completion_tokens', 0),
+                })
+    except (http_requests.ConnectionError, http_requests.Timeout):
+        data = read_json(USAGE_LOG) or {'entries': []}
+        for entry in data.get('entries', []):
+            entries.append({
+                'timestamp': entry.get('timestamp', ''),
+                'model': entry.get('model', 'unknown'),
+                'spend': 0,
+                'total_tokens': entry.get('tokens', 0),
+                'prompt_tokens': 0,
+                'completion_tokens': 0,
+            })
+    return jsonify({'entries': entries, 'source': source})
 
 @app.route('/')
 def index():
