@@ -58,3 +58,11 @@ def test_cost_unknown_model():
     assert cost > 0  # uses default rate (1.0, 3.0)
     expected = (1000 * 1.0 + 500 * 3.0) / 1_000_000
     assert abs(cost - expected) < 0.0001
+
+def test_glass_morphism_css_present(client):
+    """Dashboard includes glass morphism styling"""
+    rv = client.get('/')
+    html = rv.data.decode()
+    assert 'backdrop-filter' in html
+    assert 'blur(12px)' in html
+    assert 'rgba(20, 20, 25, 0.7)' in html

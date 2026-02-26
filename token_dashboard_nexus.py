@@ -328,6 +328,15 @@ def index():
             --status-idle: #ffd700;
         }}
 
+        /* Glass morphism base class */
+        .glass {{
+            background: rgba(20, 20, 25, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37);
+        }}
+
         * {{
             margin: 0;
             padding: 0;
@@ -336,6 +345,9 @@ def index():
 
         body {{
             background: var(--bg-primary);
+            background-image:
+                radial-gradient(circle at 10% 20%, rgba(0, 217, 255, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 90% 80%, rgba(167, 139, 250, 0.08) 0%, transparent 50%);
             color: var(--text-primary);
             font-family: 'JetBrains Mono', monospace;
             font-size: 13px;
@@ -431,17 +443,21 @@ def index():
 
         /* Tiles */
         .tile {{
-            background: var(--bg-secondary);
-            border: 1px solid var(--border-dim);
+            background: rgba(20, 20, 25, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37);
             border-radius: 6px;
             margin-bottom: 20px;
             overflow: hidden;
-            transition: all 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }}
 
         .tile:hover {{
+            transform: translateY(-4px);
+            box-shadow: 0 12px 32px rgba(99, 102, 241, 0.2);
             border-color: var(--border-glow);
-            box-shadow: 0 0 20px rgba(0, 217, 255, 0.2);
         }}
 
         .tile-header {{
@@ -489,8 +505,10 @@ def index():
 
         /* Pet card */
         .pet-card {{
-            background: var(--bg-tertiary);
-            border: 1px solid var(--border-dim);
+            background: rgba(20, 20, 25, 0.5);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
             border-radius: 4px;
             padding: 15px;
             margin-bottom: 15px;
