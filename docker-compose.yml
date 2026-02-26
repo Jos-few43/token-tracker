@@ -1,0 +1,14 @@
+services:
+  token-tracker:
+    build: .
+    ports:
+      - "5056:5056"
+    volumes:
+      - ${HOME}/.config/opencode:/root/.config/opencode:ro
+      - ${HOME}/.openclaw:/root/.openclaw:ro
+      - /tmp/litellm-full-env:/tmp/litellm-full-env:ro
+    environment:
+      - LITELLM_URL=http://host.docker.internal:4000
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped

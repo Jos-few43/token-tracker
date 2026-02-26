@@ -1,0 +1,7 @@
+__pycache__
+*.pyc
+tests/
+.git
+.venv
+token-dashboard-v1.py
+DESIGN-MERGE-PLAN.md
