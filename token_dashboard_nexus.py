@@ -324,6 +324,7 @@ def index():
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
         :root {{
             --bg-primary: #0a0d1a;
@@ -1362,9 +1363,10 @@ def get_data():
     })
 
 if __name__ == '__main__':
-    print('🚀 NEXUS // TOKEN OS')
-    print('📊 Cyberpunk Terminal Dashboard')
-    print('🎯 Features: ASCII Pets • Health Bars • Real-time Stats')
-    print('🔄 Auto-refresh every 10 seconds')
-    print(f'⚡ Dashboard: http://localhost:5555')
+    print('NEXUS // TOKEN OS')
+    print('Cyberpunk Terminal Dashboard')
+    print('Features: ASCII Pets | Health Bars | Real-time Stats | Glass Morphism')
+    print('Auto-refresh every 10 seconds')
+    print('Dashboard: http://localhost:5056')
+    app.run(host='0.0.0.0', port=5056, debug=False)
     app.run(host='0.0.0.0', port=5555)

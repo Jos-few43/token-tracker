@@ -1,10 +1,10 @@
-# Token Tracker Dashboard 🎯
+# Token Tracker Dashboard — NEXUS // TOKEN OS
 
-Multi-provider AI token usage monitoring dashboard with real-time analytics and cyberpunk aesthetics.
+Multi-provider AI token usage monitoring dashboard with real-time analytics, glass morphism design, and spend timeline charts.
 
 ## Overview
 
-Track OAuth accounts, API keys, and usage statistics across multiple AI providers from a single, beautiful web interface.
+Track OAuth accounts, API keys, LiteLLM spend logs, and usage statistics across multiple AI providers from a single web interface.
 
 ### Tracked Providers
 
@@ -16,175 +16,110 @@ Track OAuth accounts, API keys, and usage statistics across multiple AI provider
 
 **API Keys:**
 - Groq
-- Gemini API
+- Gemini API (Direct)
 - OpenCode
 - OpenRouter
 - Anthropic (Claude)
 
-## Versions
+## Features
 
-### 🚀 token-dashboard-nexus.py (Latest)
-**Cyberpunk Terminal Theme** - Full-featured dashboard with real-time monitoring
+- Real-time token usage tracking with 10-second auto-refresh
+- OAuth account management with ASCII avatars and health bars
+- TPM/RPM limit monitoring per provider
+- LiteLLM spend log integration (`/spend/logs` endpoint)
+- Per-model cost calculation (9 models + default pricing)
+- Glass morphism UI: `backdrop-filter: blur(12px)`, radial gradient backgrounds
+- Spend timeline chart (Chart.js) with hourly aggregation
+- Usage analytics: hourly, 24h, 7d, 30d, all-time
+- Graceful fallback when LiteLLM is unavailable
 
-**Features:**
-- 📊 Real-time token usage tracking
-- 🔐 OAuth account management
-- 🎯 TPM/RPM limit monitoring
-- 📈 Usage analytics (hourly, daily, weekly, monthly)
-- 🎨 Cyberpunk grid aesthetic with ASCII avatars
-- ⚡ Live uptime tracking
-- 🎭 Provider status indicators
-- 📱 Responsive design
+## Quick Start
 
-**Design:**
-- Neon cyan/green accents (#00d9ff, #00ff41)
-- Grid background with glow effects
-- Terminal-inspired typography (JetBrains Mono)
-- Sharp edges, high contrast
-
-### 📦 token-dashboard-v1.py (Previous)
-**Original Implementation** - Earlier version, smaller codebase (951 lines)
-
-## Installation
-
-### Requirements
+### Local
 
 ```bash
-pip install flask
+pip install -r requirements.txt
+python token_dashboard_nexus.py
+# Dashboard at http://localhost:5056
 ```
 
-### Quick Start
+### Docker
 
 ```bash
-# Run the dashboard
-python3 token-dashboard-nexus.py
-
-# Access in browser
-open http://localhost:5000
+docker compose up
+# Dashboard at http://localhost:5056
 ```
 
-### Data Sources
+### Tests
 
-The dashboard reads from:
-- `~/.config/opencode/antigravity-accounts.json` - OpenCode OAuth accounts
-- `~/.openclaw/agents/main/agent/auth-profiles.json` - OpenClaw auth profiles
-- `/tmp/litellm-full-env` - LiteLLM API keys
-- `~/.openclaw/usage-stats.json` - Usage statistics
+```bash
+python -m pytest tests/ -v
+```
 
-## Design Evolution
+## Data Sources
 
-### Current: Cyberpunk Terminal
-- Hard edges, grid patterns
-- Neon colors (cyan, green, purple)
-- ASCII art avatars
-- Terminal aesthetic
+- `~/.config/opencode/antigravity-accounts.json` — OpenCode OAuth accounts
+- `~/.openclaw/agents/main/agent/auth-profiles.json` — OpenClaw auth profiles
+- `/tmp/litellm-full-env` — LiteLLM API keys
+- `~/.openclaw/usage-stats.json` — Local usage statistics
+- `http://localhost:4000/spend/logs` — LiteLLM spend logs (live)
 
-### Planned: Glass Morphism (DESIGN-MERGE-PLAN.md)
-- Soft translucent cards
-- Backdrop blur effects
-- Gradient backgrounds
-- Indigo accent (#6366f1)
-- iOS-inspired design language
+## API Endpoints
 
-See `DESIGN-MERGE-PLAN.md` for the glass morphism design specification.
+| Endpoint | Description |
+|---|---|
+| `GET /` | Dashboard HTML |
+| `GET /api/spend` | LiteLLM spend logs with cost calculation |
+| `GET /api/spend?aggregate=hourly` | Hourly aggregated spend for charts |
+| `GET /api/oauth` | OAuth account status |
+| `GET /api/apikeys` | API key status |
+| `GET /api/stats` | Usage statistics |
 
-## Features Deep Dive
+## Model Pricing (per million tokens)
 
-### Token Monitoring
-- Track TPM (Tokens Per Minute) and RPM (Requests Per Minute) limits
-- Real-time usage across all providers
-- Model-specific tracking
+| Model | Input | Output |
+|---|---|---|
+| claude-opus-4-6 | $15.00 | $75.00 |
+| claude-sonnet-4-5 | $3.00 | $15.00 |
+| claude-haiku-4-5 | $0.80 | $4.00 |
+| gemini-3-flash | $0.10 | $0.40 |
+| gemini-3-pro | $1.25 | $10.00 |
+| gpt-oss-120b | $0.00 | $0.00 |
+| llama-3.3-70b-versatile | $0.59 | $0.79 |
+| deepseek-r1 | $0.55 | $2.19 |
+| qwen-2.5-coder-32b | $0.20 | $0.20 |
 
-### Analytics Dashboard
-- **Hourly**: Last 60 minutes
-- **Daily**: Last 24 hours
-- **Weekly**: Last 7 days
-- **Monthly**: Last 30 days
-- **All-time**: Complete history
-
-### Provider Management
-- Auto-detect OAuth accounts from config files
-- API key validation and status checking
-- Dashboard links for each provider
-- Color-coded status indicators
-
-### Model Tracking
-- Per-model request counts
-- Token consumption by model
-- Multi-provider model support
-
-## Development
-
-### Project Structure
+## Project Structure
 
 ```
 token-tracker/
-├── token-dashboard-nexus.py    # Current version (cyberpunk)
-├── token-dashboard-v1.py       # Previous version
-├── DESIGN-MERGE-PLAN.md        # Glass morphism design spec
-└── README.md                   # This file
+├── token_dashboard_nexus.py   # Single-file Flask app (HTML/CSS/JS embedded)
+├── token-dashboard-v1.py      # Previous version (reference only)
+├── tests/
+│   └── test_dashboard.py      # pytest test suite (7 tests)
+├── requirements.txt            # Flask, requests, pytest
+├── Dockerfile                  # python:3.12-slim, port 5056
+├── docker-compose.yml          # With LiteLLM URL + config volume mounts
+├── .dockerignore
+├── DESIGN-MERGE-PLAN.md       # Glass morphism design spec (implemented)
+└── README.md
 ```
-
-### Running in Development
-
-```bash
-# With auto-reload
-export FLASK_ENV=development
-python3 token-dashboard-nexus.py
-```
-
-### Customization
-
-Edit provider configurations in the script:
-- `OAUTH_PROVIDERS` - OAuth provider limits and models
-- `API_PROVIDERS` - API key provider details
 
 ## Architecture
 
-**Stack:**
-- Backend: Flask (Python 3)
-- Frontend: Vanilla HTML/CSS/JavaScript
-- Design: Single-file architecture (HTML embedded in Python)
-
-**Why Single-File?**
-- Rapid development and deployment
-- No build process required
-- Easy to modify and understand
-- Self-contained distribution
+- **Backend**: Flask (Python 3)
+- **Frontend**: Vanilla HTML/CSS/JavaScript (embedded in Python f-string)
+- **Charts**: Chart.js 4.4 (CDN)
+- **Design**: Glass morphism — `rgba(20, 20, 25, 0.7)` + `backdrop-filter: blur(12px)`
+- **Port**: 5056
 
 ## Browser Support
 
-- Chrome 76+ (backdrop-filter support)
+- Chrome 76+ (backdrop-filter)
 - Firefox 103+
 - Safari 9+
 - Edge (Chromium)
 
-## Performance
-
-- Lightweight: ~1200 lines of code
-- No external dependencies (except Flask)
-- Real-time updates without polling
-- Optimized CSS animations (GPU-accelerated)
-
-## Future Enhancements
-
-- [ ] Apply glass morphism design from DESIGN-MERGE-PLAN.md
-- [ ] Add theme switcher (cyberpunk ↔ glass)
-- [ ] WebSocket support for live updates
-- [ ] Export usage data (CSV/JSON)
-- [ ] Historical charts (Chart.js integration)
-- [ ] Multi-user support
-- [ ] Authentication layer
-- [ ] Docker deployment
-
-## Contributing
-
-Feel free to fork and customize for your own use case!
-
 ## License
 
 MIT
-
----
-
-**Built for monitoring AI provider usage across multiple platforms** 🤖
